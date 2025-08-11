@@ -78,8 +78,22 @@ class SimpleMLP(nn.Module):
         loss = nn.functional.mse_loss(pred_noise, eps, reduction="mean")
         return loss
 
-    def forward(self, x):
-        return self.model(x)
+    def sample(self, context_batch):
+        device = context_batch.device
+        context_batch = context_batch.to(device)
+        b_size = context_batch.size(0)
+        feat_size = self.input_size - context_batch.size(1) - self.pos_emb_dim
+        x = torch.randn(b_size, feat_size, device=device)
+        num_steps = self.noise_scheduler.config.num_train_timesteps
+        self.noise_scheduler.set_timesteps(num_steps, device=device)
+        with torch.no_grad():
+            for t in self.noise_scheduler.timesteps:
+                t_norm = torch.full((b_size,), t.item() / num_steps, device=device)
+                emb = self.pos_emb(t_norm)
+                inp = torch.cat((x, context_batch, emb), dim=1)
+                pred = self.model(inp)
+                x = self.noise_scheduler.step(pred, t, x).prev_sample
+        return x
 
 
 if __name__ == "__main__":
@@ -88,4 +102,7 @@ if __name__ == "__main__":
     batch = torch.rand(2, 2 * T) * 2 - 1  # Batch size of 2
     contexts = torch.rand(2, 2)
     loss = model.compute_loss(batch, contexts)  # Example context vector
-    print(loss)
+
+    for _ in range(5):
+        x = model.sample(contexts)
+        print(x)

@@ -85,6 +85,11 @@ if __name__ == "__main__":
     print(f"TensorBoard logging to: {log_dir}")
 
     dataset = TrajectoryDataset(dataset_path=workspace / "dataset.npy")
+    torch.save(
+        {"min": dataset.min, "max": dataset.max},
+        workspace / "normalizer_min_max.pt",
+    )
+
     n_total = len(dataset)
     n_val = int(n_total * val_ratio)
     n_train = n_total - n_val
