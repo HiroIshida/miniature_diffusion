@@ -9,12 +9,14 @@ from torch.utils.tensorboard import SummaryWriter
 
 from model import SimpleMLP
 
+DOF = 2
+
 
 class TrajectoryDataset(Dataset):
     def __init__(self, dataset_path: Path):
         trajectories = np.load(dataset_path)
         n, T, _ = trajectories.shape
-        flattened_trajectories = trajectories.reshape(n, T * 2)  # flatten
+        flattened_trajectories = trajectories.reshape(n, T * DOF)  # flatten
         self.data = torch.from_numpy(flattened_trajectories).float()
         print(f"data shape: {self.data.shape}")
 
@@ -26,7 +28,7 @@ class TrajectoryDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        return self.data[idx], self.data[idx][-2:]
+        return self.data[idx], self.data[idx][-DOF:]
 
 
 class Normalizer:
@@ -56,9 +58,8 @@ def evaluate(model, loader, normalizer, device):
     total_count = 0
     for features, contexts in loader:
         features = features.to(device)
-        contexts = contexts.to(device)
         features_normalized = normalizer.normalize(features)
-        loss_out = model.compute_loss(features_normalized, contexts)
+        loss_out = model.compute_loss(features_normalized, features_normalized[:, -DOF:])
         loss = loss_out["loss"] if isinstance(loss_out, dict) else loss_out
         bsz = features.size(0)
         total_loss += loss.item() * bsz
@@ -101,6 +102,9 @@ if __name__ == "__main__":
     model = SimpleMLP(50).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 
+    best_ckpt_path = workspace / "best_ckpt.pt"
+    best_val = float("inf")
+
     for epoch in range(1, num_epochs + 1):
         running_loss = 0.0
         running_count = 0
@@ -109,10 +113,8 @@ if __name__ == "__main__":
             train_loader, desc=f"Epoch {epoch}/{num_epochs}", leave=False
         ):
             features = features.to(device)
-            contexts = contexts.to(device)
-
             features_normalized = normalizer.normalize(features)
-            loss_out = model.compute_loss(features_normalized, contexts)
+            loss_out = model.compute_loss(features_normalized, features_normalized[:, -DOF:])
             loss = loss_out["loss"] if isinstance(loss_out, dict) else loss_out
 
             optimizer.zero_grad(set_to_none=True)
@@ -132,5 +134,21 @@ if __name__ == "__main__":
         print(f"Epoch {epoch:04d} | train_loss: {train_loss:.6f} | val_loss: {val_loss:.6f}")
         writer.add_scalar("Loss/train", train_loss, epoch)
         writer.add_scalar("Loss/val", val_loss, epoch)
+
+        if val_loss < best_val:
+            best_val = val_loss
+            state = {
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "best_val_loss": best_val,
+                "train_loss": train_loss,
+                "val_loss": val_loss,
+                "normalizer_min": normalizer.min.detach().cpu(),
+                "normalizer_max": normalizer.max.detach().cpu(),
+                "timestamp": timestamp,
+            }
+            torch.save(state, best_ckpt_path)
+            print(f"✅ New best! Saved checkpoint to: {best_ckpt_path}")
 
     writer.close()
