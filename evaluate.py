@@ -35,6 +35,7 @@ def main(step: int | None = None):
     context = torch.Tensor(goal).unsqueeze(0).float()
     context_norm = normalizer_context.normalize(context)
 
+    torch.manual_seed(0)
     actions_np_list = []
     for _ in range(20):
         actions_norm = model.sample(context_norm, n_step=step)
