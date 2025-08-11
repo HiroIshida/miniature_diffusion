@@ -72,7 +72,7 @@ if __name__ == "__main__":
     workspace = Path("workspace")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     grad_clip = 1.0
-    batch_size = 64
+    batch_size = 512
     num_epochs = 10000
     val_ratio = 0.2  # split train/validation
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     normalizer = Normalizer(dataset.min, dataset.max).to(device)
 
     model = SimpleMLP(50).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
 
     best_ckpt_path = workspace / "best_ckpt.pt"
     best_val = float("inf")

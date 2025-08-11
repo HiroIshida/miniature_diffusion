@@ -26,7 +26,7 @@ class DiffusionSinusoidalPosEmb(nn.Module):
 
 
 class SimpleMLP(nn.Module):
-    def __init__(self, T, hidden_size=128, pos_emb_dim=64):
+    def __init__(self, T, hidden_size=2048, pos_emb_dim=64):
         super(SimpleMLP, self).__init__()
         input_size = 2 * T + 2 + pos_emb_dim  # (2 × T + 2 + 1)
         output_size = 2 * T  # (2 × T)
@@ -34,6 +34,8 @@ class SimpleMLP(nn.Module):
         self.pos_emb_dim = pos_emb_dim
         self.model = nn.Sequential(
             nn.Linear(input_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),

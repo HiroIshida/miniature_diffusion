@@ -12,7 +12,7 @@ from lib.task import BOUNDS, sample_obstacles, sample_point
 from lib.trajectory import Trajectory
 
 
-def generate_dataset(n: int = 10000, debug: bool = False):
+def generate_dataset(n: int = 100000, debug: bool = False):
     r = random.Random()
     traj_arrs = []
     # temporary fix obstacles
