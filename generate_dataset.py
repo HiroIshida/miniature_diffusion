@@ -42,7 +42,7 @@ def generate_dataset(n: int = 10000, debug: bool = False):
         if path is None:
             continue
         traj = Trajectory(np.array(path))
-        traj_arr = traj.resample(100).numpy()
+        traj_arr = traj.resample(50).numpy()
         traj_arrs.append(traj_arr)
 
         pbar.update(1)
