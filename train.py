@@ -1,11 +1,13 @@
-import numpy as np
 import random
-from rrt import RRTConnect2D
-from task import sample_problem, BOUNDS, sample_obstacles, sample_point
-from trajectory import Trajectory
-import tqdm
+
 import matplotlib.pyplot as plt
+import numpy as np
+import tqdm
 from matplotlib.patches import Rectangle
+
+from rrt import RRTConnect2D
+from task import BOUNDS, sample_obstacles, sample_point
+from trajectory import Trajectory
 
 
 def generate_dataset(n: int = 300):
@@ -18,7 +20,7 @@ def generate_dataset(n: int = 300):
     while len(trajs) < n:
         start = (2, 2)
         r = random.Random(seed)
-        goal = sample_point(BOUNDS, obstacles, r, min_dist_to=start, min_sep = 50)
+        goal = sample_point(BOUNDS, obstacles, r, min_dist_to=start, min_sep=50)
         planner = RRTConnect2D(
             BOUNDS,
             obstacles=obstacles,

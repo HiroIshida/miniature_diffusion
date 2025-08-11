@@ -6,7 +6,7 @@
 import math
 import random
 from dataclasses import dataclass
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -133,7 +133,9 @@ class RRTConnect2D:
                 return "Trapped", last_idx
         return status, last_idx
 
-    def reconstruct(self, tree_start: List[Node], idx_start: int, tree_goal: List[Node], idx_goal: int):
+    def reconstruct(
+        self, tree_start: List[Node], idx_start: int, tree_goal: List[Node], idx_goal: int
+    ):
         p1 = self.path_to_root(tree_start, idx_start)
         p2 = self.path_to_root(tree_goal, idx_goal)
         return p1 + p2[::-1][1:]
@@ -167,7 +169,7 @@ class RRTConnect2D:
         steps = max(1, int(math.ceil(L / self.collision_step)))
 
         # Sample along the segment at t = 1/steps, 2/steps, ..., 1.0 (unchanged coverage)
-        ts = (np.arange(1, steps + 1, dtype=float) / float(steps))
+        ts = np.arange(1, steps + 1, dtype=float) / float(steps)
         xs = x0 + dx * ts
         ys = y0 + dy * ts
 
@@ -196,12 +198,15 @@ class RRTConnect2D:
         oxmax = self._obs_arr[:, 2][:, None]
         oymax = self._obs_arr[:, 3][:, None]
 
-        inside_any_rect = (xs[None, :] >= oxmin) & (xs[None, :] <= oxmax) & (ys[None, :] >= oymin) & (ys[None, :] <= oymax)
+        inside_any_rect = (
+            (xs[None, :] >= oxmin)
+            & (xs[None, :] <= oxmax)
+            & (ys[None, :] >= oymin)
+            & (ys[None, :] <= oymax)
+        )
         collides = np.any(inside_any_rect, axis=0)
 
         return in_bounds & (~collides)
-
-    # ---------------------- RNG helpers (compatible with random.Random or numpy Generator) ----------------------
 
     def _rand(self) -> float:
         # Works for both random.Random and numpy Generator
