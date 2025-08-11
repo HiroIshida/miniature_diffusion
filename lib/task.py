@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
 
-from rrt import RRTConnect2D
+from .rrt import RRTConnect2D
 
 BOUNDS = (0.0, 0.0, 100.0, 100.0)
 

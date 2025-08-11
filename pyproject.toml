@@ -9,6 +9,7 @@ dependencies = [
     "numpy>=2.2.6",
     "ruff>=0.12.8",
     "tqdm>=4.67.1",
+    "tyro>=0.9.28",
 ]
 
 [tool.ruff]
