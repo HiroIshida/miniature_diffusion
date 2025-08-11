@@ -80,7 +80,7 @@ class SimpleMLP(nn.Module):
         loss = nn.functional.mse_loss(pred_noise, eps, reduction="mean")
         return loss
 
-    def sample(self, context_batch):
+    def sample(self, context_batch, n_step: int | None = None):
         device = context_batch.device
         context_batch = context_batch.to(device)
         b_size = context_batch.size(0)
@@ -89,12 +89,16 @@ class SimpleMLP(nn.Module):
         num_steps = self.noise_scheduler.config.num_train_timesteps
         self.noise_scheduler.set_timesteps(num_steps, device=device)
         with torch.no_grad():
+            count = 0
             for t in self.noise_scheduler.timesteps:
                 t_norm = torch.full((b_size,), t.item() / num_steps, device=device)
                 emb = self.pos_emb(t_norm)
                 inp = torch.cat((x, context_batch, emb), dim=1)
                 pred = self.model(inp)
                 x = self.noise_scheduler.step(pred, t, x).prev_sample
+                count += 1
+                if n_step is not None and count >= n_step:
+                    break
         return x
 
 
