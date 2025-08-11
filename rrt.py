@@ -77,6 +77,8 @@ class RRTConnect2D:
             return path
         pts = [tuple(map(float, p)) for p in path]
         for _ in range(int(iterations)):
+            if len(pts) == 2:
+                return pts
             i = self._randint(0, len(pts) - 3)
             j = self._randint(i + 2, len(pts) - 1)
             if self.segment_free(pts[i][0], pts[i][1], pts[j][0], pts[j][1]):

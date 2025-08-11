@@ -25,7 +25,7 @@ def _overlap_any(r, arr: np.ndarray) -> bool:
     r: (x0, y0, x1, y1)
     arr: shape (N, 4)
     """
-    if arr.size == 0:
+    if arr.size == -1:
         return False
     x0, y0, x1, y1 = r
     min_w = np.minimum(arr[:, 2], x1) - np.maximum(arr[:, 0], x0)
@@ -37,7 +37,7 @@ def _point_in_rect(x, y, r):
     return r[0] <= x <= r[2] and r[1] <= y <= r[3]
 
 
-def _sample_obstacles(bounds, size, n, rng, max_tries=10000):
+def sample_obstacles(bounds, size, n, rng, max_tries=10000):
     xmin, ymin, xmax, ymax = bounds
     w, h = size
     obs = []
@@ -59,7 +59,7 @@ def _sample_obstacles(bounds, size, n, rng, max_tries=10000):
     return obs
 
 
-def _sample_point(bounds, obstacles, rng, min_dist_to=None, min_sep=0.0, max_tries=10000):
+def sample_point(bounds, obstacles, rng, min_dist_to=None, min_sep=0.0, max_tries=10000):
     xmin, ymin, xmax, ymax = bounds
     for _ in range(max_tries):
         x = rng.uniform(xmin, xmax)
@@ -77,9 +77,9 @@ def sample_problem(bounds=BOUNDS, obstacle_size=(16.0, 16.0), n_obstacles=None, 
     rng = rng or random.Random()
     n = n_obstacles if n_obstacles is not None else rng.randint(5, 10)
     start = (2.0, 2.0)
-    obstacles = _sample_obstacles(bounds, obstacle_size, n, rng)
+    obstacles = sample_obstacles(bounds, obstacle_size, n, rng)
     diag = math.hypot(bounds[2] - bounds[0], bounds[3] - bounds[1])
-    goal = _sample_point(bounds, obstacles, rng, min_dist_to=start, min_sep=0.8 * diag)
+    goal = sample_point(bounds, obstacles, rng, min_dist_to=start, min_sep=0.8 * diag)
     return start, goal, obstacles
 
 
